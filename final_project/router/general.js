@@ -39,6 +39,17 @@ public_users.get('/',function (req, res) {
     res.send(JSON.stringify(books));
 });
 
+// Get the book list available in the shop using promise
+public_users.get('/async', function(req,res) {
+    new Promise((resolve, reject) => {
+        setTimeout(() => {
+            resolve(books)
+        }, 2000)
+    }).then(data => {
+        res.send(JSON.stringify(data));
+    })
+});
+
 // Get book details based on ISBN
 public_users.get('/isbn/:isbn',function (req, res) {
     const isbn = req.params.isbn;
@@ -49,6 +60,23 @@ public_users.get('/isbn/:isbn',function (req, res) {
     }
 
     res.send(JSON.stringify(book))
+});
+
+// Get book details based on ISBN using promise
+public_users.get('/isbn/async/:isbn', function (req, res) {
+    new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const isbn = req.params.isbn;
+            const book = books[isbn];
+            console.log(book);
+            resolve(book);
+        }, 2000)
+    }).then(data => {
+        if (!data) {
+            return res.status(404).json({message:"No book with the given isbn"})
+        }
+        res.send(JSON.stringify(data))
+    })
 });
   
 // Get book details based on author
@@ -65,6 +93,30 @@ public_users.get('/author/:author',function (req, res) {
     res.send(JSON.stringify(theBooks));
 });
 
+// Get book details based on author using async-await
+public_users.get('/author/async/:author', async function (req, res) {
+    try {
+        const author = req.params.author.toLowerCase();
+
+        const theBooks = await new Promise((resolve, reject) => {
+            setTimeout(() =>{
+                const data = Object.values(books).filter(book => 
+                    book.author.toLowerCase().includes(author)
+                );
+                resolve(data)
+            }, 2000);
+        });
+
+        if (theBooks.length === 0) {
+            return res.status(404).json({message:"No book with the given title"})
+        }
+    
+        res.send(JSON.stringify(theBooks));
+    } catch (err) {
+        res.status(500).json({message:"internal server error"});
+    }
+});
+
 // Get all books based on title
 public_users.get('/title/:title',function (req, res) {
     const title = req.params.title.toLowerCase();
@@ -77,6 +129,30 @@ public_users.get('/title/:title',function (req, res) {
     }
 
     res.send(JSON.stringify(theBooks));
+});
+
+// Get all books based on title using async-await
+public_users.get('/title/async/:title', async function (req, res) {
+    try {
+        const title = req.params.title.toLowerCase();
+
+        const theBooks = await new Promise((resolve, reject) => {
+            setTimeout(() =>{
+                const data = Object.values(books).filter(book => 
+                    book.title.toLowerCase().includes(title)
+                );
+                resolve(data)
+            }, 2000);
+        })
+
+        if (theBooks.length === 0) {
+            return res.status(404).json({message:"No book with the given title"})
+        }
+
+        res.send(JSON.stringify(theBooks));
+    } catch (err) {
+        res.status(500).json({message:"internal server error"});
+    }
 });
 
 //  Get book review
